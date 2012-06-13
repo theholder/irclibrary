@@ -230,7 +230,6 @@ class IRCConnection(object):
                 self.respond(result, channel=channel)
                 ts = time.strftime("%I:%M%p %S", time.localtime(time.time()))
                 print("[%s]: @#%s: %s" % (ts,str(channel), str(result)))
-        db.hset("users:activitydata", nick.lower(), json.dumps([channel.lower(), "speak", time.time(), message]))
     
     def handle_private_message(self, nick, message):
         for result in self._process_command(nick, message, None):
