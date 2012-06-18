@@ -322,6 +322,10 @@ class IRCBot(object):
     def join(self, message):
            self.conn.send("JOIN #%s" % message.lower())
 
+    def part(self, message):
+           self.conn.send("PART #%s" % message.lower())
+
+
 def run_bot(bot_class, host, port, nick, channels=None):
     """\
     Convenience function to start a bot on the given network, optionally joining
