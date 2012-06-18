@@ -9,7 +9,7 @@ import sys
 import time
 import json
 from tools import ts
-
+import tools
 try:
     from gevent import socket
 except ImportError:
@@ -319,6 +319,8 @@ class IRCBot(object):
         self.conn.respond(message, channel, nick)
         print("%s %s %s" % (nick, channel, message))
 
+    def join(self, message):
+           self.conn.send("JOIN #%s" % message.lower())
 
 def run_bot(bot_class, host, port, nick, channels=None):
     """\
