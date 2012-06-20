@@ -181,8 +181,6 @@ class IRCConnection(object):
         """\
         Respond to periodic PING messages from server
         """
-        ts = time.strftime("%I:%M%p %S", time.localtime(time.time()))
-        print('[%s]:\033[33m[WARN]\033[0m server ping: %s' % (ts,payload))
         self.send('PONG %s' % payload, True)
 
     def handle_registered(self, server):
