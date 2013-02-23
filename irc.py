@@ -1,6 +1,24 @@
-#IRC LIBRARY #
-#	     #
-##############
+################################################################
+# File: irc.py
+# Title: IRC Client Library
+# Author: sorch/theholder <support@sorch.inf>
+# Version: 0.5
+# Description:
+#  An event-based library for connecting to one or multiple IRC rooms
+################################################################
+
+################################################################
+# License
+################################################################
+# Copyright 2013 Contributing Authors
+# This program is distributed under the terms of the GNU GPL.
+#################################################################
+
+
+#IMPORTS
+###
+
+
 import logging,os,random,re,sys,time,json, tools
 from tools import ts
 try:
