@@ -1,15 +1,8 @@
 #IRC LIBRARY #
 #	     #
 ##############
-import logging
-import os
-import random
-import re
-import sys
-import time
-import json
+import logging,os,random,re,sys,time,json, tools
 from tools import ts
-import tools
 try:
     from gevent import socket
 except ImportError:
