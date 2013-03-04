@@ -1,4 +1,3 @@
-## example bot ##
 rooms = ["room", "roomhere"]
 
 from irc import IRCBot, run_bot
