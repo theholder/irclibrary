@@ -7,7 +7,7 @@ owner = "theholder" # put your irc nick here
 
 class bot(IRCBot):
 
-	def nick(self, nick, message, channel):
+	def say(self, nick, message, channel):
 		if nick.lower() != owner:
 			return
 		else:
