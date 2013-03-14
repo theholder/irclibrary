@@ -129,6 +129,10 @@ class IRCConnection(object):
         channel = channel.lstrip('#')
         self.send('PART #%s' % channel)
         self.logger.debug('leaving #%s' % channel)
+
+    def push(self, channel, type, ret):
+        q = "\x01%s %s\x01" % (type, ret)
+        self.send("PRIVMSG #%s :%s" %( channel.lstrip("#"), q))
     
     def respond(self, message, channel=None, nick=None):
         """\
