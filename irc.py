@@ -21,6 +21,7 @@
 
 import logging,os,random,re,sys,time,json, tools
 from tools import ts
+import log
 try:
     from gevent import socket
 except ImportError:
@@ -56,6 +57,8 @@ class IRCConnection(object):
         self.server = server
         self.port = port
         self.nick = self.base_nick = nick
+        self._userlist = list()
+        self._modelist = list()
         
         self.logfile = logfile
         self.verbosity = verbosity
@@ -113,26 +116,22 @@ class IRCConnection(object):
         self._sock.close()    
     
     def register_nick(self):
-        print('\033[94m[INF]\033[0m Registering nick %s' % self.nick)
+        log.info("REGISTER", "%s" % self.nick)
         self.send('NICK %s' % self.nick, True)
 
     def register(self):
-        print('\033[94m[INF]\033[0m Authing as %s' % self.nick)
+        log.warn("AUTH", "%s" % self.nick)
         self.send('USER %s %s bla :%s' % (self.nick, self.server, self.nick), True)
 
     def join(self, channel):
         channel = channel.lstrip('#')
         self.send('JOIN #%s' % channel)
-        print('joining #%s' % channel)
+        #print('joining #%s' % channel)
 
     def part(self, channel):
         channel = channel.lstrip('#')
         self.send('PART #%s' % channel)
         self.logger.debug('leaving #%s' % channel)
-
-    def push(self, channel, type, ret):
-        q = "\x01%s %s\x01" % (type, ret)
-        self.send("PRIVMSG #%s :%s" %( channel.lstrip("#"), q))
     
     def respond(self, message, channel=None, nick=None):
         """\
@@ -181,7 +180,7 @@ class IRCConnection(object):
         """
         old = self.nick
         self.nick = '%s_%s' % (self.base_nick, random.randint(1, 1000))
-        print('\033[33m[WARN]\033[0m Nick %s already taken, trying %s' % (old, self.nick))
+        log.info("NICK", "%s %s" % (old, nick))
         self.register_nick()
 
     def handle_regnick(self):
@@ -189,7 +188,7 @@ class IRCConnection(object):
 		Handles identifying to NickServ
 		"""
 		ret = "id %s" % tools.password
-		print('\033[33m[WARN]\033[0m Nick is registered identifying')
+		log.warn("NICK-REG",  "%s" % self.nick)
 		self.respond(ret, None, "nickserv")
     
     def handle_ping(self, payload):
@@ -204,7 +203,7 @@ class IRCConnection(object):
         data.
         """
         if not self._registered:
-            print('[%s]:\033[94m[INF]\033[0m Registered' % ts)
+            log.info("REGISTERED", "")
             self._registered = True
             for data in self._out_buffer:
                 self.send(data)
@@ -214,18 +213,19 @@ class IRCConnection(object):
         for pattern, callback in self._callbacks:
             if pattern.match('/part'):
                 callback(nick, '/part', channel)
-        print("[INF] %s part #%s" % (nick.lower(), channel.lower()))
+        log.info("PART", "#%s: %s" % (channel, nick))
     
     def handle_join(self, nick, channel):
         for pattern, callback in self._callbacks:
             if pattern.match('/join'):
                 callback(nick, '/join', channel)
-        print("[INF] %s joined #%s" % (nick.lower(), channel.lower()))
+        log.info("JOIN", "#%s: %s" % (channel, nick))
     
     def handle_quit(self, nick):
         for pattern, callback in self._callbacks:
             if pattern.match('/quit'):
                 callback(nick, '/quit', channel)
+        log.info("QUIT", "%s" % nick)
     
     def _process_command(self, nick, message, channel):
         results = []
@@ -241,8 +241,8 @@ class IRCConnection(object):
         for result in self._process_command(nick, message, channel):
             if result:
                 self.respond(result, channel=channel)
-                ts = time.strftime("%I:%M%p %S", time.localtime(time.time()))
-                print("[%s]: @#%s: %s" % (ts,str(channel), str(result)))
+                log.info("CMD", "#%s: %s" % (channel, result))
+        log.info("MSG", "#%s: %s %s" % (channel, nick, message))
     
     def handle_private_message(self, nick, message):
         for result in self._process_command(nick, message, None):
@@ -267,8 +267,21 @@ class IRCConnection(object):
                 print('\033[94m[INF]\033[0m server closed connection')
                 self.close()
                 return True
-            
+
             data = data.rstrip()
+            if ("353" in data):
+               names = data[56:].split()
+               self._userlist = names
+               ml = []
+               ul = names
+               for name in ul:
+                   mode = name[0]
+                   if mode not in["@","&","%", "~", "+"]:
+                         mode = " "
+                   else:
+                         mode = mode
+                   ml.append(mode)
+               self._modelist = ml
 
             for pattern, callback in patterns:
                 match = pattern.match(data)
@@ -283,10 +296,38 @@ class IRCBot(object):
     """
     def __init__(self, conn):
         self.conn = conn
+        self._userlist = list()
+        self.cmds = {}
+        self.cl = []
         
         # register callbacks with the connection
         self.register_callbacks()
-    
+
+
+    def pushcmdHelp(self, name, string):
+         if self.cmds.has_key(name):
+               pass
+         else:
+               self.cmds['%s' % name] = "%s" % string
+
+
+    def cmdlist(self,name):
+         if not name in self.cl:
+             self.cl.append(name)
+         else:
+              pass
+
+
+    def cmds(self):
+        return self.cl
+
+
+    def getHelpkey(self, key):
+        if self.cmds.has_key(key):
+                return self.cmds[key]
+        else:
+                return "Key %s not found" % key
+
     def register_callbacks(self):
         """\
         Hook for registering callbacks with connection -- handled by __init__()
@@ -308,7 +349,9 @@ class IRCBot(object):
     def fix_ping(self, message):
         return re.sub('^%s[:,\s]\s*' % self.conn.nick, '', message)
     
-    def command(self, pattern, callback):
+    def command(self, pattern, callback, name, string):
+        self.cmdlist(name)
+        self.pushcmdHelp(name, string)
         return (
             '^%s[:,\s]\s*%s' % (self.conn.nick, pattern.lstrip('^')),
             self._ping_decorator(callback),
