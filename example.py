@@ -44,7 +44,7 @@ class bot(IRCBot):
 			self.command("help", self.help, "help", "get help on commands"),
 		)
 		
-host = "irc.mycooldude.info"
+host = "irc.sorch.info"
 port = 6667
 nick = "bot"
 
