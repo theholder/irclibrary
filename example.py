@@ -27,6 +27,9 @@ class bot(IRCBot):
 		except:
 			inp = nick.lower()
 		return "beeeeech slaps %s" % inp
+		
+	def whoami(self, nick, message, channel):
+		return "You are %s silly" % nick
 
 
 	def help(self, nick, message, channel):
@@ -42,6 +45,7 @@ class bot(IRCBot):
 			self.command("dice", self.dice, "dice", "make the bot roll a dice"),
 			self.command("slap", self.slap, "slap", "make the bot slap someone"),
 			self.command("help", self.help, "help", "get help on commands"),
+			self.command("whoami", self.whoami, "whoami", "see who you are of course"),
 		)
 		
 host = "irc.sorch.info"
