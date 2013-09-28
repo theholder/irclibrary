@@ -2,7 +2,7 @@
 # File: irc.py
 # Title: IRC Client Library
 # Author: sorch/theholder <support@sorch.info>
-# Version: 0.5
+# Version: 0.6b
 # Description:
 #  An event-based library for connecting to one or multiple IRC rooms
 ################################################################
