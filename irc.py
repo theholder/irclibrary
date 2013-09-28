@@ -45,6 +45,7 @@ class IRCConnection(object):
     join_re = re.compile(':(?P<nick>.*?)!\S+\s+?JOIN\s+:\s*#(?P<channel>[-\w]+)')
     quit_re = re.compile(':(?P<nick>.*?)!\S+\s+?QUIT\s+.*')
     registered_re = re.compile(':(?P<server>.*?)\s+(?:376|422)')
+    nc_re = re.compile(':(?P<nick>.*?)!\S+\s+?NICK\s+:\s*(?P<newnick>.*)')
     
     # mapping for logging verbosity
     verbosity_map = {
@@ -57,8 +58,9 @@ class IRCConnection(object):
         self.server = server
         self.port = port
         self.nick = self.base_nick = nick
-        self._userlist = list()
-        self._modelist = list()
+        self._userlist = {}
+        self._modelist = {}
+        self._caseduserlist = {}
         
         self.logfile = logfile
         self.verbosity = verbosity
@@ -165,7 +167,11 @@ class IRCConnection(object):
             (self.privmsg_re, self.handle_private_message),
             (self.registered_re, self.handle_registered),
             (self.nick_regged_re, self.handle_regnick),
+            (self.nc_re, self.handle_nc),
         )
+
+    def requestUserList(self, chan):
+        self.send("names #%s" % chan)
     
     def register_callbacks(self, callbacks):
         """\
@@ -226,6 +232,12 @@ class IRCConnection(object):
             if pattern.match('/quit'):
                 callback(nick, '/quit', channel)
         log.info("QUIT", "%s" % nick)
+
+    def handle_nc(self, nick, newnick):
+        for pattern, callback in self._callbacks:
+            if pattern.match('NICK'):
+                callback(nick, 'NICK', "")
+        log.info("NICKCHANGE", "%s %s" % (nick, newnick))
     
     def _process_command(self, nick, message, channel):
         results = []
@@ -270,18 +282,30 @@ class IRCConnection(object):
 
             data = data.rstrip()
             if ("353" in data):
-               names = data[56:].split()
-               self._userlist = names
+               names = data.split(":")[-1].strip().split(" ")
+               try:
+                 chan = data.split(" ")[4].lstrip("#")
+               except:
+                 chan = data.split(" ")[3].lstrip("#")
+               stn = []
                ml = []
+               cl = []
                ul = names
                for name in ul:
                    mode = name[0]
                    if mode not in["@","&","%", "~", "+"]:
                          mode = " "
+                         
                    else:
                          mode = mode
+                   who = name.lower().lstrip(mode)
+                   whocased = name.lstrip(mode)
                    ml.append(mode)
-               self._modelist = ml
+                   stn.append(who)
+                   cl.append(whocased)
+               self._modelist['%s' % chan.lower()] = ml
+               self._userlist['%s' % chan.lower()] = stn
+               self._caseduserlist['%s' % chan.lower()] = cl
 
             for pattern, callback in patterns:
                 match = pattern.match(data)
