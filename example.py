@@ -1,9 +1,9 @@
-rooms = ["ruur"]
+rooms = ["room", "roomhere"]
 
 from irc import IRCBot, run_bot
 import random
 
-owner = "theholder" # put your irc nick here
+owner = "yournick" # put your irc nick here
 
 
 def makebold(args):
@@ -45,9 +45,9 @@ class bot(IRCBot):
 			self.command("whoami", self.whoami, "whoami", "see who you are of course"),
 		)
 		
-host = "irc.aseriesoftubez.com"
+host = "irc.domain.tld"
 port = 6667
-nick = "cakebot213"
+nick = "bawt"
 
 run_bot(bot, 
 	host, 
