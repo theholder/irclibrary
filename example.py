@@ -1,9 +1,9 @@
-rooms = ["room", "roomhere"]
+rooms = ["ruur"]
 
 from irc import IRCBot, run_bot
 import random
 
-owner = "yournick" # put your irc nick here
+owner = "theholder" # put your irc nick here
 
 
 def makebold(args):
@@ -13,8 +13,8 @@ def makebold(args):
 class bot(IRCBot):
 
 	def say(self, nick, message, channel):
-			ret = message[4:]
-			return ret
+		ret = message[4:]
+		return ret
 
 	def dice(self, nick, message, channel):
 		return "%s rolls a dice and gets %s" % (nick, random.randrange(1, 6))
@@ -28,7 +28,6 @@ class bot(IRCBot):
 		
 	def whoami(self, nick, message, channel):
 		return "You are %s silly" % nick
-
 
 	def help(self, nick, message, channel):
 		args = message[5:].lower()
@@ -46,13 +45,12 @@ class bot(IRCBot):
 			self.command("whoami", self.whoami, "whoami", "see who you are of course"),
 		)
 		
-host = "irc.domain.tld"
+host = "irc.aseriesoftubez.com"
 port = 6667
-nick = "botlything"
+nick = "cakebot213"
 
 run_bot(bot, 
 	host, 
 	port, 
 	nick, 
 	rooms)
-		
