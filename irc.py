@@ -46,6 +46,7 @@ class IRCConnection(object):
 	quit_re = re.compile(':(?P<nick>.*?)!\S+\s+?QUIT\s+.*')
 	registered_re = re.compile(':(?P<server>.*?)\s+(?:376|422)')
 	nc_re = re.compile(':(?P<nick>.*?)!\S+\s+?NICK\s+:\s*(?P<newnick>.*)')
+        matchNames = re.compile('^:.* 353 %s = (?P<chan>.*?) :(?P<names>.*)' % tools.name)
 	
 	# mapping for logging verbosity
 	verbosity_map = {
@@ -165,6 +166,7 @@ class IRCConnection(object):
 			(self.registered_re, self.handle_registered),
 			(self.nick_regged_re, self.handle_regnick),
 			(self.nc_re, self.handle_nc),
+                        (self.matchNames, self.handleuserlist),
 		)
 
 	def requestUserList(self, chan):
@@ -193,6 +195,26 @@ class IRCConnection(object):
 		ret = "id %s" % tools.password
 		log.warn("NICK-REG",  "%s" % self.nick)
 		self.respond(ret, None, "nickserv")
+
+
+
+    def handleuserlist(self, chan, names):
+        """userlist handler"""
+        opsSet = set()
+        voicesSet = set()
+        namesSet = set()
+        names = names.split(" ")
+        for name in names:
+             mode = name[0]
+             if mode not in["@","&","%", "~", "+"]:
+               mode = " "
+             else:
+              mode = mode
+             who = name.lstrip(mode)
+             namesSet.add(who.lower())
+        self._updateNames(chan.lstrip("#"), namesSet, opsSet, voicesSet)
+
+
 	
 	def handle_ping(self, payload):
 		"""\
@@ -257,6 +279,13 @@ class IRCConnection(object):
 		for result in self._process_command(nick, message, None):
 			if result:
 				self.respond(result, nick=nick)
+
+    def _updateNames(self, channel, namesSet, opsSet, voicesSet):
+        ch = channel.lower()
+        if ch not in self._userlist: self._userlist[ch] = set()
+        if ch not in self._caseduserlist: self._caseduserlist[ch] = set()
+        self._userlist[ch] |= namesSet
+        self._caseduserlist[ch] |= namesSet
 	
 	def enter_event_loop(self):
 		"""\
