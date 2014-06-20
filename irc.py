@@ -306,32 +306,6 @@ class IRCConnection(object):
 				return True
 
 			data = data.rstrip()
-			if ("353" in data):
-				names = data.split(":")[-1].strip().split(" ")
-			else:
-				names = []
-			try:
-				chan = data.split(" ")[3].lstrip(":#")
-			except:
-				chan = data.split(" ")[2].lstrip(":#")
-			stn = []
-			ml = []
-			cl = []
-			ul = names
-			for name in ul:
-				mode = name[0]
-				if mode not in["@","&","%", "~", "+"]:
-					mode = " "
-				else:
-					mode = mode
-				who = name.lower().lstrip(mode)
-				whocased = name.lstrip(mode)
-				ml.append(mode)
-				stn.append(who)
-				cl.append(whocased)
-			self._modelist['%s' % chan.lower()] = ml
-			self._userlist['%s' % chan.lower()] = stn
-			self._caseduserlist['%s' % chan.lower()] = cl
 
 			for pattern, callback in patterns:
 				match = pattern.match(data)
