@@ -196,24 +196,22 @@ class IRCConnection(object):
 		log.warn("NICK-REG",  "%s" % self.nick)
 		self.respond(ret, None, "nickserv")
 
-
-
-    def handleuserlist(self, chan, names):
-        """userlist handler"""
-        opsSet = set()
-        voicesSet = set()
-        namesSet = set()
-        names = names.split(" ")
-        for name in names:
-             mode = name[0]
-             if mode not in["@","&","%", "~", "+"]:
-               mode = " "
-             else:
-              mode = mode
-             who = name.lstrip(mode)
-             namesSet.add(who.lower())
-        self._updateNames(chan.lstrip("#"), namesSet, opsSet, voicesSet)
-
+        def handleuserlist(self, chan, names):
+         """userlist handler"""
+        #print("GOT userlist for %s > %s" % (chan, names))
+         opsSet = set()
+         voicesSet = set()
+         namesSet = set()
+         names = names.split(" ")
+         for name in names:
+              mode = name[0]
+              if mode not in["@","&","%", "~", "+"]:
+                mode = " "
+              else:
+               mode = mode
+              who = name.lstrip(mode)
+              namesSet.add(who.lower())
+         self._updateNames(chan.lstrip("#"), namesSet, opsSet, voicesSet)
 
 	
 	def handle_ping(self, payload):
@@ -280,12 +278,12 @@ class IRCConnection(object):
 			if result:
 				self.respond(result, nick=nick)
 
-    def _updateNames(self, channel, namesSet, opsSet, voicesSet):
-        ch = channel.lower()
-        if ch not in self._userlist: self._userlist[ch] = set()
-        if ch not in self._caseduserlist: self._caseduserlist[ch] = set()
-        self._userlist[ch] |= namesSet
-        self._caseduserlist[ch] |= namesSet
+        def _updateNames(self, channel, namesSet, opsSet, voicesSet):
+          ch = channel.lower()
+          if ch not in self._userlist: self._userlist[ch] = set()
+          if ch not in self._caseduserlist: self._caseduserlist[ch] = set()
+          self._userlist[ch] |= namesSet
+          self._caseduserlist[ch] |= namesSet
 	
 	def enter_event_loop(self):
 		"""\
