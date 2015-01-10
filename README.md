@@ -1,4 +1,4 @@
-IRC.PY
+IRC.PY (DEPRECATED PLEASE SEE http://github.com/theholder/mangov3/)
 =====
 
 Description
