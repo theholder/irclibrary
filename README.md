@@ -1,4 +1,5 @@
-IRC.PY (DEPRECATED PLEASE SEE http://github.com/theholder/mangov3/)
+IRC.PY (DEPRECATED)
+PLEASE SEE http://github.com/theholder/mango3/
 =====
 
 Description
